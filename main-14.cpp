@@ -114,31 +114,158 @@ void removeNewspapersByYear(int year) {
     );
 }
 
-int main() {
-    addSource(new Book("Майстер і Маргарита", "Булгаков", "Фантастика", 1967));
-    addSource(new Book("Злочин і кара", "Достоєвський", "Класика", 1866));
-    addSource(new Magazine("National Geographic", 2020));
-    addSource(new Newspaper("The New York Times", 2021));
+void displayMenu() {
+    cout << "Меню:\n";
+    cout << "1. Заповнення бази даних\n";
+    cout << "2. Перегляд даних про всі джерела\n";
+    cout << "3. Доповнення бази даних записом джерела\n";
+    cout << "4. Видалення джерела із бази даних\n";
+    cout << "5. Упорядкування по полях\n";
+    cout << "6. Пошук книги\n";
+    cout << "7. Вибірка книг за категорією або автором\n";
+    cout << "8. Обчислення кількості книг певної категорії\n";
+    cout << "9. Видалення газет за певний рік\n";
+    cout << "0. Вихід\n";
+}
+
+void addSourceInteractive() {
+    int choice;
+    cout << "Оберіть тип джерела (1 - Книга, 2 - Журнал, 3 - Газета): ";
+    cin >> choice;
+    cin.ignore();
     
-    cout << "Всі джерела:" << endl;
-    viewAllSources();
+    string title;
+    int year;
     
-    Source* foundBook = findBook("Булгаков", "Майстер і Маргарита");
-    if (foundBook) {
-        cout << "\nЗнайдена книга:" << endl;
-        foundBook->print();
+    if (choice == 1) {
+        string author, category;
+        cout << "Введіть назву книги: ";
+        getline(cin, title);
+        cout << "Введіть автора книги: ";
+        getline(cin, author);
+        cout << "Введіть категорію книги: ";
+        getline(cin, category);
+        cout << "Введіть рік видання: ";
+        cin >> year;
+        addSource(new Book(title, author, category, year));
     }
+    else if (choice == 2) {
+        cout << "Введіть назву журналу: ";
+        getline(cin, title);
+        cout << "Введіть рік видання: ";
+        cin >> year;
+        addSource(new Magazine(title, year));
+    }
+    else if (choice == 3) {
+        cout << "Введіть назву газети: ";
+        getline(cin, title);
+        cout << "Введіть рік видання: ";
+        cin >> year;
+        addSource(new Newspaper(title, year));
+    }
+    else {
+        cout << "Невірний вибір.\n";
+    }
+}
 
-    int count = countBooksByCategory("Фантастика");
-    cout << "\nКількість книг категорії 'Фантастика': " << count << endl;
-
-    removeNewspapersByYear(2021);
-    cout << "\nБаза даних після видалення газет за 2021 рік:" << endl;
-    viewAllSources();
-
+int main() {
+    int choice;
+    
+    do {
+        displayMenu();
+        cout << "Оберіть опцію: ";
+        cin >> choice;
+        cin.ignore();
+        
+        switch (choice) {
+            case 1:
+                addSourceInteractive();
+                break;
+            case 2:
+                viewAllSources();
+                break;
+            case 3:
+                addSourceInteractive();
+                break;
+            case 4: {
+                string title;
+                cout << "Введіть назву джерела для видалення: ";
+                getline(cin, title);
+                removeSource(title);
+                break;
+            }
+            case 5:
+                sortByTypeAndTitle();
+                cout << "Джерела упорядковано.\n";
+                break;
+            case 6: {
+                string author, title;
+                cout << "Введіть автора книги: ";
+                getline(cin, author);
+                cout << "Введіть назву книги: ";
+                getline(cin, title);
+                Source* foundBook = findBook(author, title);
+                if (foundBook) {
+                    foundBook->print();
+                } else {
+                    cout << "Книга не знайдена.\n";
+                }
+                break;
+            }
+            case 7: {
+                int subChoice;
+                cout << "1. Вибірка книг за категорією\n2. Вибірка книг за автором\n";
+                cin >> subChoice;
+                cin.ignore();
+                
+                if (subChoice == 1) {
+                    string category;
+                    cout << "Введіть категорію: ";
+                    getline(cin, category);
+                    int count = countBooksByCategory(category);
+                    cout << "Кількість книг категорії '" << category << "': " << count << endl;
+                } else if (subChoice == 2) {
+                    string author;
+                    cout << "Введіть автора: ";
+                    getline(cin, author);
+                    for (const auto& source : library) {
+                        if (source->type == "Книга") {
+                            Book* book = static_cast<Book*>(source);
+                            if (book->author == author) {
+                                book->print();
+                            }
+                        }
+                    }
+                }
+                break;
+            }
+            case 8: {
+                string category;
+                cout << "Введіть категорію для підрахунку: ";
+                getline(cin, category);
+                int count = countBooksByCategory(category);
+                cout << "Кількість книг у категорії '" << category << "': " << count << endl;
+                break;
+            }
+            case 9: {
+                int year;
+                cout << "Введіть рік для видалення газет: ";
+                cin >> year;
+                removeNewspapersByYear(year);
+                break;
+            }
+            case 0:
+                cout << "Вихід.\n";
+                break;
+            default:
+                cout << "Невірний вибір.\n";
+        }
+        
+    } while (choice != 0);
+    
     for (auto source : library) {
         delete source;
     }
-
+    
     return 0;
 }
